@@ -1,6 +1,14 @@
 import os
 import sys
 import re
+import argparse
+
+parser = argparse.ArgumentParser(description = "Grep like python utility")
+parser.add_argument("pattern", nargs=1, help="The pattern, text or regex, to match")
+parser.add_argument("-re", "-regex", action="store_true", help="Treat the given text as a regex string")
+parser.add_argument("-r", "-recursive", action="store_true", help="Recursively search all subdirectories")
+parser.add_argument("-i", "-ignorecase", action="store_true", help="Match case insensitive")
+
 
 def dofile(matchfunc):
 	def inner(file):
@@ -19,11 +27,16 @@ def dofile(matchfunc):
 			pass
 	return inner
 
-def regex(pattern):
-	return dofile(lambda x: re.search(pattern, x) is not None)
+def regex(pattern, insensitive):
+	compiled = None
+	if insensitive:
+		compiled = re.compile(pattern, flags=re.IGNORECASE)
+	else:
+		compiled = re.compile(pattern)
+	return dofile(lambda x: compiled.search(x) is not None)
 	
-def regular(pattern):
-	return dofile(lambda x: pattern in x)
+def regular(pattern, insensitive):
+	return regex(re.escape(pattern), insensitive)
 
 def mapfolder(folder, func):
 	names = os.listdir(folder)
@@ -35,13 +48,22 @@ def mapfolder(folder, func):
 	for i in files:
 		func(i)
 		
-if len(sys.argv) == 2:
-	pattern = sys.argv[1]
-	mapfolder(".", regular(pattern))
-elif len(sys.argv) == 3 and sys.argv[1] == "-re":
-	pattern = sys.argv[2]
-	mapfolder(".", regex(pattern))
+def onefolder(folder, func):
+	names = os.listdir(folder)
+	items = [os.path.join(folder,x) for x in names]
+	files = [x for x in items if os.path.isfile(x)]
+	for i in files:
+		func(i)
+		
+args = parser.parse_args()
+patternmatcher = None
+if args.re:
+	patternmatcher = regex(args.pattern[0], args.i)
 else:
-	print("Wrong usage:")
-	print("grep.py \"some text\"")
-	print("grep.py -re \"some regex pattern\"")
+	patternmatcher = regular(args.pattern[0], args.i)
+
+if args.r:
+	mapfolder(".", patternmatcher)
+else:
+	onefolder(".", patternmatcher)
+	
