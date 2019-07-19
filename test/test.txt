@@ -1,0 +1,4 @@
+grep
+grEP
+GREP
+12345

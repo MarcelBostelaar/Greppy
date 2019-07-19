@@ -1,0 +1,6 @@
+grep
+GRep
+GREP
+5678
+space test
+regex_off_test_[\s]+
