@@ -176,13 +176,16 @@ def execute_files(file_paths, pattern, isRegex=False, caseInsensitive=False, bas
 		else:
 			matches_for_file = dofile_regular(file_path, pattern, caseInsensitive)
 
+		if(not (index % 1000 == 0)):
+			continue
 		match_count = len(matches_for_file)
 
 		relative_path = os.path.relpath(file_path, start=base_folder)
-		clear_console()
-		print(str(index) + "/" + str(total_files))
-		print("matches: " + str(match_count))
-		print(relative_path)
+		text = "\033[2J\033[H" # Clear console and move cursor to top left
+		text += (str(index) + "/" + str(total_files)) + "\n"
+		text += ("matches: " + str(match_count)) + "\n"
+		text += (relative_path)
+		print(text)
 
 		all_results += matches_for_file
 
