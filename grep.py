@@ -71,12 +71,37 @@ def main(pattern, isRegex=False, caseInsensitive = False, recursive = False, fol
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description = "Grep like python utility")
-	parser.add_argument("pattern", nargs=1, help="The pattern, text or regex, to match")
+	parser.add_argument("pattern", nargs="?", help="The pattern, text or regex, to match")
 	parser.add_argument("-re", "-regex", action="store_true", help="Treat the given text as a regex string")
 	parser.add_argument("-r", "-recursive", action="store_true", help="Recursively search all subdirectories")
 	parser.add_argument("-i", "-ignorecase", action="store_true", help="Match case insensitive")
+	parser.add_argument("-f", "-folder", default=".", help="Folder to search in (default: current directory)")
+	parser.add_argument("--h", "-help", "--help", action="help", help="Show help page")
 
 	args = parser.parse_args()
-	result = main(args.pattern[0], isRegex=args.re, caseInsensitive=args.i, recursive=args.r)
+	if args.pattern is None:
+		print("Error: pattern is required.")
+		parser.print_help()
+		sys.exit(0)
+
+	if args.pattern == "":
+		print("Warning: empty pattern is not allowed.")
+		parser.print_help()
+		sys.exit(1)
+
+	if args.pattern.strip() == "":
+		confirmation = input("Pattern is whitespace-only. Continue? [y/N]: ").strip().lower()
+		if confirmation not in ["y", "yes"]:
+			print("Search cancelled.")
+			parser.print_help()
+			sys.exit(1)
+	
+	if args.pattern == "help":
+		confirmation = input("Show help? Press enter/no to search for the pattern 'help'. [y/N]: ").strip().lower()
+		if confirmation in ["y", "yes"]:
+			parser.print_help()
+			sys.exit(0)
+
+	result = main(args.pattern, isRegex=args.re, caseInsensitive=args.i, recursive=args.r, folder=args.folder)
 	print("\n".join(result))
 	
